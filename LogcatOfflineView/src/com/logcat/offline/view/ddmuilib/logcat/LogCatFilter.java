@@ -280,13 +280,6 @@ public final class LogCatFilter {
             }
         }
 
-        if (mCheckText) {
-            Matcher matcher = mTextPattern.matcher(m.getMessage());
-            if (!matcher.find()) {
-                return false;
-            }
-        }
-        
         if (mPIDList != null && mPIDList.size() != 0){
         	boolean isFind = false;
     		for (int i = 0; i < mPIDList.size(); i++){
@@ -342,6 +335,21 @@ public final class LogCatFilter {
         		return false;
         	}
         }
+        
+        if (mCheckText) {
+            Matcher matcher = mTextPattern.matcher(m.getMessage());
+            
+            if (!matcher.find()) {
+            	matcher = mTextPattern.matcher(m.getTag());
+            	if (!matcher.find()) {
+            		matcher = mTextPattern.matcher(m.getPid());
+            		if (!matcher.find()) {
+            			return false;
+            		}
+            	}
+            }
+        }
+        
 
         return true;
     }

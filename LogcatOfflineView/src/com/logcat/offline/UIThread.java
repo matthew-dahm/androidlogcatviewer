@@ -57,8 +57,7 @@ public class UIThread {
 	
 	private PreferenceStore mPreferenceStore;
 	private LogCatPanel mLogCatPanel_main;
-	private LogCatPanel mLogCatPanel_event;
-	private LogCatPanel mLogCatPanel_radio;
+
 	
 	private Clipboard mClipboard;
     private MenuItem mCopyMenuItem;
@@ -308,17 +307,7 @@ public class UIThread {
             }
         });
         
-        item = new MenuItem(aboutMenu, SWT.NONE);
-        item.setText("&About");
-        item.addSelectionListener(new SelectionAdapter(){
-        	@Override
-            public void widgetSelected(SelectionEvent e) {
-        		String msg = " Email : m41m41.a@gmail.com\n"
-        					+" Email : yuru_1012@163.com";
-        		MessageDialog.openInformation(shell, "About Tool", msg);
-            }
-        });
-        
+       
         // tell the shell to use this menu
         shell.setMenuBar(menuBar);
 	}
@@ -333,104 +322,23 @@ public class UIThread {
         mStatusLine.setText("Initializing...");
 
         Composite mainPanel = new Composite(panelArea, SWT.NONE);
-        final Sash sash_h = new Sash(panelArea, SWT.HORIZONTAL);
-        sash_h.setBackground(darkGray);
-        Composite eventPanel = new Composite(panelArea, SWT.NONE);
-        final Sash sash_v = new Sash(panelArea, SWT.VERTICAL);
-        sash_v.setBackground(darkGray);
-        Composite radioPanel = new Composite(panelArea, SWT.NONE);
 
         panelArea.setLayout(new FormLayout());
         createMainPanel(mainPanel);
-        createEventPanel(eventPanel);
-        createRadioPanel(radioPanel);
         
         mClipboard = new Clipboard(panelArea.getDisplay());
 
         // form layout data
         FormData data = new FormData();
         data.top = new FormAttachment(0, 0);
-        data.bottom = new FormAttachment(sash_h, 0);
+        data.bottom = new FormAttachment(100, 0);
         data.left = new FormAttachment(0, 0);
         data.right = new FormAttachment(100, 0);
         mainPanel.setLayoutData(data);
 
-        final FormData sashData_h = new FormData();
-        if (mPreferenceStore != null && mPreferenceStore.contains(PREFERENCE_LOGSASH_H)) {
-        	sashData_h.top = new FormAttachment(0, mPreferenceStore.getInt(
-                    PREFERENCE_LOGSASH_H));
-        } else {
-        	sashData_h.top = new FormAttachment(50,0); // 50% across
-        }
-        sashData_h.left = new FormAttachment(0, 0);
-        sashData_h.right = new FormAttachment(100, 0);
-        sash_h.setLayoutData(sashData_h);
-
-        data = new FormData();
-        data.top = new FormAttachment(sash_h, 0);
-        data.bottom = new FormAttachment(100, 0);
-        data.left = new FormAttachment(0, 0);
-        data.right = new FormAttachment(sash_v, 0);
-        eventPanel.setLayoutData(data);
-        
-        final FormData sashData_v = new FormData();
-        sashData_v.top = new FormAttachment(sash_h, 0);
-        sashData_v.bottom = new FormAttachment(100, 0);
-        if (mPreferenceStore != null && mPreferenceStore.contains(PREFERENCE_LOGSASH_V)) {
-        	sashData_v.left = new FormAttachment(0, mPreferenceStore.getInt(
-                    PREFERENCE_LOGSASH_V));
-        } else {
-        	sashData_v.left = new FormAttachment(50,0); // 50% across
-        }
-        sash_v.setLayoutData(sashData_v);
-
-        data = new FormData();
-        data.top = new FormAttachment(sash_h, 0);
-        data.bottom = new FormAttachment(100, 0);
-        data.left = new FormAttachment(sash_v, 0);
-        data.right = new FormAttachment(100, 0);
-        radioPanel.setLayoutData(data);
-
-        sash_h.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                Rectangle sashRect = sash_h.getBounds();
-                Rectangle panelRect = panelArea.getClientArea();
-                int bottom = panelRect.height - sashRect.height - MINIMAL_HEIGHT;
-                e.y = Math.max(Math.min(e.y, bottom), MINIMAL_HEIGHT);
-                if (e.y != sashRect.y) {
-                	sashData_h.top = new FormAttachment(0, e.y);
-                    if (mPreferenceStore != null) {
-                    	mPreferenceStore.setValue(PREFERENCE_LOGSASH_H, e.y);
-                    }
-                    panelArea.layout();
-                }
-            }
-        });
-        
-        sash_v.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                Rectangle sashRect = sash_v.getBounds();
-                Rectangle panelRect = panelArea.getClientArea();
-                int right = panelRect.width - sashRect.width - 100;
-                e.x = Math.max(Math.min(e.x, right), 100);
-                if (e.x != sashRect.x) {
-                	sashData_v.left = new FormAttachment(0, e.x);
-                    if (mPreferenceStore != null) {
-                    	mPreferenceStore.setValue(PREFERENCE_LOGSASH_V, e.x);
-                    }
-                    panelArea.layout();
-                }
-            }
-        });
-        
-     // add a global focus listener for all the tables
         mTableListener = new TableFocusListener();
 
         mLogCatPanel_main.setTableFocusListener(mTableListener);
-        mLogCatPanel_event.setTableFocusListener(mTableListener);
-        mLogCatPanel_radio.setTableFocusListener(mTableListener);
 
         mStatusLine.setText("");
     }
@@ -440,18 +348,6 @@ public class UIThread {
         mLogCatPanel_main.createControl(parent);
         addDropSupport(parent, PANEL_ID_MAIN);
     }
-
-	private void createEventPanel(Composite parent) {
-        mLogCatPanel_event = new LogCatPanel(mPreferenceStore, PANEL_ID_EVENTS, "events buffer");
-        mLogCatPanel_event.createControl(parent);
-        addDropSupport(parent, PANEL_ID_EVENTS);
-	}
-	
-	private void createRadioPanel(Composite parent) {
-        mLogCatPanel_radio = new LogCatPanel(mPreferenceStore, PANEL_ID_RADIO, "radio buffer");
-        mLogCatPanel_radio.createControl(parent);
-        addDropSupport(parent, PANEL_ID_RADIO);
-	}
 
     private void addDropSupport(Composite parent, final int panelIdMain) {
         final FileTransfer fileTransfer = FileTransfer.getInstance();
